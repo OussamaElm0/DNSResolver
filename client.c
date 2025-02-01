@@ -34,6 +34,12 @@ int main(){
 
     printf("Your message sent successfully!\n");
 
+    char message_recv[254];
+
+    recv(sk, message_recv, sizeof(message_recv), 0);
+
+    printf("The official address of %s is : %s\n", message, message_recv);
+
     close(sk);
 
 

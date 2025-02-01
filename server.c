@@ -3,10 +3,12 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <string.h>
+#include <arpa/inet.h>
 
 #define PORT 1312
 
 int main(){
+    char message_recv[254], official_address[254];
     int sk = socket(AF_INET, SOCK_STREAM, 0);
 
     if(sk < 0){
@@ -41,12 +43,19 @@ int main(){
         return 1;
     }
 
-    char message[254];
+    recv(client, message_recv, sizeof(message_recv), 0);
+    message_recv[strcspn(message_recv, "\n")] = 0;
 
-    recv(client, message, sizeof(message), 0);
-    message[strcspn(message, "\n")] = 0;
+    printf("New message received : %s\n", message_recv);
 
-    printf("New message received : %s\n", message);
+    struct hostent *host = gethostbyname(message_recv);
+
+
+    strcpy(official_address,(char *) inet_ntoa(*(struct in_addr *) host->h_addr));
+
+    send(client, official_address, sizeof(official_address), 0);
+
+    printf("The official address is : %s\n", official_address);
 
     close(client);
     close(sk);
