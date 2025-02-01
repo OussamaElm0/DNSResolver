@@ -43,21 +43,31 @@ int main(){
         return 1;
     }
 
-    recv(client, message_recv, sizeof(message_recv), 0);
-    message_recv[strcspn(message_recv, "\n")] = 0;
+    while(1){
+        memset(message_recv, 0, sizeof(message_recv));
+        int read = recv(client, message_recv, sizeof(message_recv) - 1, 0);
+        message_recv[strcspn(message_recv, "\n")] = 0;
 
-    printf("New message received : %s\n", message_recv);
+        if(read < 0){
+            break;
+        } else if(strcmp(message_recv, "/exit") == 0){
+            printf("Client disconnetced!");
+            close(client);
+            break;
+        }
 
-    struct hostent *host = gethostbyname(message_recv);
+        printf("New message received : %s\n", message_recv);
+
+        struct hostent *host = gethostbyname(message_recv);
 
 
-    strcpy(official_address,(char *) inet_ntoa(*(struct in_addr *) host->h_addr));
+        strcpy(official_address,(char *) inet_ntoa(*(struct in_addr *) host->h_addr));
 
-    send(client, official_address, sizeof(official_address), 0);
+        send(client, official_address, sizeof(official_address), 0);
 
-    printf("The official address is : %s\n", official_address);
+        printf("The official address is : %s\n", official_address);  
+    }
 
-    close(client);
     close(sk);
 
     return 0;

@@ -25,23 +25,28 @@ int main(){
         return 1;
     }
 
-    char message[254];
+    char message[254], message_recv[254];;
 
-    printf("Enter the message to send : \n");
-    fgets(message, sizeof(message), stdin);
+    while (1){
+        memset(message_recv, 0, sizeof(message_recv));
+        printf("Enter the domaine name : \n");
+        fgets(message, sizeof(message), stdin);
 
-    send(sk, message, strlen(message), 0);
+        if(strcmp(message, "/exit") == 0){
+            printf("You are logged!");
+            break;
+        }
 
-    printf("Your message sent successfully!\n");
+        send(sk, message, strlen(message), 0);
 
-    char message_recv[254];
+        printf("Your message sent successfully!\n");
 
-    recv(sk, message_recv, sizeof(message_recv), 0);
+        recv(sk, message_recv, sizeof(message_recv), 0);
 
-    printf("The official address of %s is : %s\n", message, message_recv);
+        printf("The official address of %s is : %s\n", message, message_recv);
+    }
 
     close(sk);
-
 
     return 0;
 }
