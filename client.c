@@ -43,6 +43,7 @@ int main(){
             printf("Message sent successfully!\n");
 
             recv(sk, message_recv, sizeof(message_recv), 0);
+            message_recv[strcspn(message_recv, "\n")] = 0;
             printf("Official address of %s is: %s\n", message, message_recv);
         }
     }

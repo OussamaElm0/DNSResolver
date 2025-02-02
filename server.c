@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <arpa/inet.h>
+#include <stdlib.h>
+#include <signal.h>
 
 #define PORT 1312
 
@@ -15,6 +17,9 @@ int main(){
         perror("Error in creating socket");
         return 1;
     }
+
+    // Reap zombie processes:
+    signal(SIGCHLD, SIG_IGN);
 
     struct sockaddr_in address;
 
@@ -36,32 +41,44 @@ int main(){
 
     printf("erver is running and listening on port %d.\n", PORT);
 
-    int client = accept(sk, NULL, NULL);
-
-    if (client < 0){
-        perror("Accept error");
-        return 1;
-    }
 
     while(1){
-        memset(message_recv, 0, sizeof(message_recv));
-        int read = recv(client, message_recv, sizeof(message_recv) - 1, 0);
-        message_recv[strcspn(message_recv, "\n")] = 0;
+        int client = accept(sk, NULL, NULL);
+        pid_t processType = fork();
+        
 
-        if(read < 0){
+        if (client < 0){
+            perror("Accept error");
+            return 1;
+        }
+
+        if(processType > 0) {
             close(client);
-            break;
-        } else if(strlen(message_recv) == 0){
-            continue;   
-        } else {
-            printf("New domain query received: %s\n", message_recv);
+            
+        } else if (processType == 0){
+            close(sk);
+            while(1){
+                memset(message_recv, 0, sizeof(message_recv));
+                int read = recv(client, message_recv, sizeof(message_recv) - 1, 0);
+                message_recv[strcspn(message_recv, "\n")] = 0;
 
-            struct hostent *host = gethostbyname(message_recv);
+                if((read < 0) || (strlen(message_recv) == 0)){
+                    close(client);
+                    break;
+                } else {
+                    printf("New domain query received: %s\n", message_recv);
 
-            strcpy(official_address,(char *) inet_ntoa(*(struct in_addr *) host->h_addr));
-            send(client, official_address, sizeof(official_address), 0);
+                    struct hostent *host = gethostbyname(message_recv);
 
-            printf("Official address resolved: %s\n", official_address);  
+                    strcpy(official_address,(char *) inet_ntoa(*(struct in_addr *) host->h_addr));
+                    send(client, official_address, sizeof(official_address), 0);
+
+                    printf("Official address resolved: %s\n", official_address);  
+                }
+            }
+
+            printf("PID: %d\n", getpid());
+            exit(0);
         }
     }
 
