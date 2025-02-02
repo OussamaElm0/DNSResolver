@@ -29,21 +29,22 @@ int main(){
 
     while (1){
         memset(message_recv, 0, sizeof(message_recv));
-        printf("Enter the domaine name : \n");
+        printf("Enter the domain name: ");
         fgets(message, sizeof(message), stdin);
 
+        printf("Message entered: %s\n", message);
+        message[strcspn(message, "\n")] = 0;
+
         if(strcmp(message, "/exit") == 0){
-            printf("You are logged!");
+            printf("Disconnected from server.\n");
             break;
+        } else {
+            send(sk, message, strlen(message), 0);
+            printf("Message sent successfully!\n");
+
+            recv(sk, message_recv, sizeof(message_recv), 0);
+            printf("Official address of %s is: %s\n", message, message_recv);
         }
-
-        send(sk, message, strlen(message), 0);
-
-        printf("Your message sent successfully!\n");
-
-        recv(sk, message_recv, sizeof(message_recv), 0);
-
-        printf("The official address of %s is : %s\n", message, message_recv);
     }
 
     close(sk);

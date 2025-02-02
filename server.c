@@ -34,7 +34,7 @@ int main(){
         return 1;
     }
 
-    printf("The server is running on port %d...\n", PORT);
+    printf("erver is running and listening on port %d.\n", PORT);
 
     int client = accept(sk, NULL, NULL);
 
@@ -49,23 +49,20 @@ int main(){
         message_recv[strcspn(message_recv, "\n")] = 0;
 
         if(read < 0){
-            break;
-        } else if(strcmp(message_recv, "/exit") == 0){
-            printf("Client disconnetced!");
             close(client);
             break;
+        } else if(strlen(message_recv) == 0){
+            continue;   
+        } else {
+            printf("New domain query received: %s\n", message_recv);
+
+            struct hostent *host = gethostbyname(message_recv);
+
+            strcpy(official_address,(char *) inet_ntoa(*(struct in_addr *) host->h_addr));
+            send(client, official_address, sizeof(official_address), 0);
+
+            printf("Official address resolved: %s\n", official_address);  
         }
-
-        printf("New message received : %s\n", message_recv);
-
-        struct hostent *host = gethostbyname(message_recv);
-
-
-        strcpy(official_address,(char *) inet_ntoa(*(struct in_addr *) host->h_addr));
-
-        send(client, official_address, sizeof(official_address), 0);
-
-        printf("The official address is : %s\n", official_address);  
     }
 
     close(sk);
