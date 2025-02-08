@@ -39,7 +39,7 @@ int main(){
         return 1;
     }
 
-    printf("erver is running and listening on port %d.\n", PORT);
+    printf("Server is running and listening on port %d.\n", PORT);
 
 
     while(1){
@@ -60,7 +60,6 @@ int main(){
             while(1){
                 memset(message_recv, 0, sizeof(message_recv));
                 int read = recv(client, message_recv, sizeof(message_recv) - 1, 0);
-                message_recv[strcspn(message_recv, "\n")] = 0;
 
                 if((read < 0) || (strlen(message_recv) == 0)){
                     close(client);
@@ -70,10 +69,16 @@ int main(){
 
                     struct hostent *host = gethostbyname(message_recv);
 
-                    strcpy(official_address,(char *) inet_ntoa(*(struct in_addr *) host->h_addr));
-                    send(client, official_address, sizeof(official_address), 0);
-
-                    printf("Official address resolved: %s\n", official_address);  
+                    if(host != NULL){
+                        strcpy(official_address,(char *) inet_ntoa(*(struct in_addr *) host->h_addr));
+                        printf("Address : %s\n", official_address);
+                        send(client, official_address, sizeof(official_address), 0);
+                        printf("Official address resolved: %s\n", official_address);  
+                    }else {
+                        char *error_message = "Something went wrong! Invalid address.";
+                        send(client, error_message, strlen(error_message), 0);
+                        printf("Error message sent successfully\n");
+                    }                    
                 }
             }
 

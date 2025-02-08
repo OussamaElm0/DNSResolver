@@ -25,15 +25,15 @@ int main(){
         return 1;
     }
 
-    char message[254], message_recv[254];;
+    char message[254], message_recv[254];
 
     while (1){
         memset(message_recv, 0, sizeof(message_recv));
         printf("Enter the domain name: ");
         fgets(message, sizeof(message), stdin);
-
-        printf("Message entered: %s\n", message);
         message[strcspn(message, "\n")] = 0;
+        printf("Message entered: %s\n", message);
+        
 
         if(strcmp(message, "/exit") == 0){
             printf("Disconnected from server.\n");
@@ -44,7 +44,12 @@ int main(){
 
             recv(sk, message_recv, sizeof(message_recv), 0);
             message_recv[strcspn(message_recv, "\n")] = 0;
-            printf("Official address of %s is: %s\n", message, message_recv);
+
+            printf("--------------------------------------------------------------------------------\n");
+            printf("Response from the server: %s\n", message_recv);
+            printf("--------------------------------------------------------------------------------\n");
+
+            
         }
     }
 
