@@ -9,8 +9,10 @@
 
 #define PORT 1312
 
+void handleIpAddress(int client);
+
 int main(){
-    char message_recv[254], official_address[254];
+    char option[254];
     int sk = socket(AF_INET, SOCK_STREAM, 0);
 
     if(sk < 0){
@@ -38,15 +40,12 @@ int main(){
         close(sk);
         return 1;
     }
-
     printf("Server is running and listening on port %d.\n", PORT);
-
 
     while(1){
         int client = accept(sk, NULL, NULL);
         pid_t processType = fork();
         
-
         if (client < 0){
             perror("Accept error");
             return 1;
@@ -54,40 +53,45 @@ int main(){
 
         if(processType > 0) {
             close(client);
-            
         } else if (processType == 0){
             close(sk);
             while(1){
-                memset(message_recv, 0, sizeof(message_recv));
-                int read = recv(client, message_recv, sizeof(message_recv) - 1, 0);
+                memset(option, 0, sizeof(option));
+                int read = recv(client, option, sizeof(option) - 1, 0);
 
-                if((read < 0) || (strlen(message_recv) == 0)){
+                printf("Option : %s\n", option);
+                if((read < 0) || (strlen(option) == 0)){
                     close(client);
                     break;
-                } else {
-                    printf("New domain query received: %s\n", message_recv);
-
-                    struct hostent *host = gethostbyname(message_recv);
-
-                    if(host != NULL){
-                        strcpy(official_address,(char *) inet_ntoa(*(struct in_addr *) host->h_addr));
-                        printf("Address : %s\n", official_address);
-                        send(client, official_address, sizeof(official_address), 0);
-                        printf("Official address resolved: %s\n", official_address);  
-                    }else {
-                        char *error_message = "Something went wrong! Invalid address.";
-                        send(client, error_message, strlen(error_message), 0);
-                        printf("Error message sent successfully\n");
-                    }                    
+                } else if(strcmp(option, "/ip") == 0) {
+                    handleIpAddress(client);
                 }
             }
-
-            printf("PID: %d\n", getpid());
+            printf("Client on processus %d disconnected.\n", getpid());
             exit(0);
         }
     }
 
     close(sk);
-
     return 0;
+}
+
+void handleIpAddress(int client){
+    char official_address[254], domaine_name[254];
+    memset(domaine_name, 0, sizeof(domaine_name));
+    recv(client, domaine_name, sizeof(domaine_name) - 1, 0);
+    printf("New domain query received: %s\n", domaine_name);
+    struct hostent *host = gethostbyname(domaine_name);
+
+    if(host != NULL){
+        strcpy(official_address,(char *) inet_ntoa(*(struct in_addr *) host->h_addr));
+        printf("Address : %s\n", official_address);
+        
+        send(client, official_address, sizeof(official_address), 0);
+        printf("Official address resolved: %s\n", official_address);  
+    } else {
+        char *error_message = "Something went wrong! Invalid address.";
+        send(client, error_message, strlen(error_message), 0);
+        printf("Error message sent successfully\n");
+    }                    
 }

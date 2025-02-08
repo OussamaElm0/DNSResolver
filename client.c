@@ -6,6 +6,9 @@
 
 #define PORT 1312
 
+void displayOptions();
+void getIp(int sk);
+
 int main(){
     int sk = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -24,36 +27,57 @@ int main(){
         perror("Connection failed");
         return 1;
     }
-
-    char message[254], message_recv[254];
+    printf("Welcome!\n");
+    char option[15];
 
     while (1){
-        memset(message_recv, 0, sizeof(message_recv));
-        printf("Enter the domain name: ");
-        fgets(message, sizeof(message), stdin);
-        message[strcspn(message, "\n")] = 0;
-        printf("Message entered: %s\n", message);
-        
+        memset(option, 0, sizeof(option));
 
-        if(strcmp(message, "/exit") == 0){
+        displayOptions();
+        printf("Enter option: ");
+        fgets(option, sizeof(option), stdin);
+        option[strcspn(option, "\n")] = 0;
+
+        if(strcmp(option, "/exit") == 0){
             printf("Disconnected from server.\n");
             break;
+        } else if(strcmp(option, "/ip") == 0) {
+            send(sk, option, strlen(option), 0);
+            getIp(sk);
         } else {
-            send(sk, message, strlen(message), 0);
-            printf("Message sent successfully!\n");
-
-            recv(sk, message_recv, sizeof(message_recv), 0);
-            message_recv[strcspn(message_recv, "\n")] = 0;
-
-            printf("--------------------------------------------------------------------------------\n");
-            printf("Response from the server: %s\n", message_recv);
-            printf("--------------------------------------------------------------------------------\n");
-
-            
+            printf("Sorry! Unavailable option.\n");
         }
     }
 
     close(sk);
-
     return 0;
+}
+
+void displayOptions(){
+    printf(
+        "===============================================\n"
+        "Resolve address ip from domain name: /ip\n"
+        "Resolve domain name from address ip: /dname\n"
+        "To exit: /exit\n"
+        "===============================================\n"
+    );
+}
+
+void getIp(int sk){
+    char message[254], message_recv[254];
+
+    printf("Enter the domain name: ");
+    fgets(message, sizeof(message), stdin);
+    message[strcspn(message, "\n")] = 0;
+    printf("Message entered: %s\n", message);
+
+    send(sk, message, strlen(message), 0);
+    printf("Message sent successfully!\n");
+
+    recv(sk, message_recv, sizeof(message_recv), 0);
+    message_recv[strcspn(message_recv, "\n")] = 0;
+
+    printf("--------------------------------------------------------------------------------\n");
+    printf("Response from the server: %s\n", message_recv);
+    printf("--------------------------------------------------------------------------------\n");
 }
