@@ -8,6 +8,7 @@
 
 void displayOptions();
 void getIp(int sk);
+void getDomainName(int sk);
 
 int main(){
     int sk = socket(AF_INET, SOCK_STREAM, 0);
@@ -44,6 +45,9 @@ int main(){
         } else if(strcmp(option, "/ip") == 0) {
             send(sk, option, strlen(option), 0);
             getIp(sk);
+        } else if(strcmp(option, "/dname") == 0){
+            send(sk, option, strlen(option), 0);
+            getDomainName(sk);
         } else {
             printf("Sorry! Unavailable option.\n");
         }
@@ -79,5 +83,24 @@ void getIp(int sk){
 
     printf("--------------------------------------------------------------------------------\n");
     printf("Response from the server: %s\n", message_recv);
+    printf("--------------------------------------------------------------------------------\n");
+}
+
+void getDomainName(int sk){
+    char ip_address[254], response[1024];
+    memset(response, 0, sizeof(response));
+
+    printf("Enter the address ip: ");
+    fgets(ip_address, sizeof(ip_address), stdin);
+    ip_address[strcspn(ip_address, "\n")] = 0;
+    printf("Ip address entered: %s\n", ip_address);
+
+    send(sk, ip_address, strlen(ip_address), 0);
+    printf("Message sent successfully!\n");
+
+    recv(sk, response, sizeof(response), 0);
+
+    printf("--------------------------------------------------------------------------------\n");
+    printf("Response from the server: \n%s\n", response);
     printf("--------------------------------------------------------------------------------\n");
 }
