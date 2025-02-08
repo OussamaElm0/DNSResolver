@@ -54,7 +54,7 @@ The server will start listening on port 1312.
 3. Follow the on-screen instructions to resolve IP addresses and domain names.
 
 ### Example
-![Demo](https://imgur.com/a/fEPb7uX)
+![Demo](https://i.imgur.com/YY5fqhZ.gif)
 
 ### Contributing
 Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
